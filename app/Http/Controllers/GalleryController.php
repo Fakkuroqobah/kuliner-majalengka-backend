@@ -62,13 +62,11 @@ class GalleryController extends Controller
         // UPLOAD IMAGE
         $img = $request->file('gallery_image')->getClientOriginalExtension();
         $img = str_random(30) . '.' . $img;
-        $path = "galleries/";
+        $path = "images/galleries/";
         $request->file('gallery_image')->move($path, $img);
 
-        $imgStore = 'http://localhost:8000/galleries/' . $img;
-
         Gallery::create([
-            'gallery_image' => $imgStore,
+            'gallery_image' => $img,
             'gallery_info' => $request->input('gallery_info'),
             'gallery_copyright' => $request->input('gallery_copyright'),
             'gallery_restaurant' => $request->input('gallery_restaurant'),
@@ -103,21 +101,19 @@ class GalleryController extends Controller
         $gallery = Gallery::findOrFail($id);
 
         if(empty($request->file('gallery_image'))) {
-            $imgStore = $gallery->gallery_image;
+            $img = $gallery->gallery_image;
         }else{
             // Save new image
             $img = $request->file('gallery_image')->getClientOriginalExtension();
             $img = str_random(30) . '.' . $img;
-            $path = 'galleries/';
+            $path = 'images/galleries/';
             $request->file('gallery_image')->move($path, $img);
-
-            $imgStore = 'http://localhost:8000/galleries/' . $img;
 
             // and delete old image
             $imgDB = explode('/', $gallery->gallery_image);
             $imgDB = end($imgDB);
 
-            $path = base_path("public/galleries/$imgDB");
+            $path = base_path("public/images/galleries/$imgDB");
 
             if(file_exists($path)) {
                 unlink($path);
@@ -125,7 +121,7 @@ class GalleryController extends Controller
         }
 
         $gallery->update([
-            'gallery_image' => $imgStore,
+            'gallery_image' => $img,
             'gallery_info' => $request->input('gallery_info'),
             'gallery_copyright' => $request->input('gallery_copyright'),
             'gallery_restaurant' => $request->input('gallery_restaurant'),
@@ -152,7 +148,7 @@ class GalleryController extends Controller
         $imgDB = explode('/', $gallery->gallery_image);
         $imgDB = end($imgDB);
 
-        $path = base_path("public/galleries/$imgDB");
+        $path = base_path("public/images/galleries/$imgDB");
 
         if(file_exists($path)) {
             unlink($path);

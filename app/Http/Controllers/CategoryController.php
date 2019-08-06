@@ -46,14 +46,12 @@ class CategoryController extends Controller
         // UPLOAD IMAGE
         $img = $request->file('category_image')->getClientOriginalExtension();
         $img = str_random(30) . '.' . $img;
-        $path = "categories/";
+        $path = "images/categories/";
         $request->file('category_image')->move($path, $img);
-
-        $imgStore = 'http://localhost:8000/categories/' . $img;
 
         $request->user()->categories()->create([
             'category_name' => $request->input('category_name'),
-            'category_image' => $imgStore,
+            'category_image' => $img,
         ]);
 
         return response()->json([
@@ -79,21 +77,19 @@ class CategoryController extends Controller
         }
 
         if(empty($request->file('category_image'))) {
-            $imgStore = $category->category_image;
+            $img = $category->category_image;
         }else{
             // Save new image
             $img = $request->file('category_image')->getClientOriginalExtension();
             $img = str_random(30) . '.' . $img;
-            $path = 'categories/';
+            $path = 'images/categories/';
             $request->file('category_image')->move($path, $img);
-
-            $imgStore = 'http://localhost:8000/categories/' . $img;
 
             // and delete old image
             $imgDB = explode('/', $category->category_image);
             $imgDB = end($imgDB);
 
-            $path = base_path("public/categories/$imgDB");
+            $path = base_path("public/images/categories/$imgDB");
 
             if(file_exists($path)) {
                 unlink($path);
@@ -102,7 +98,7 @@ class CategoryController extends Controller
 
         $category->update([
             'category_name' => $request->input('category_name'),
-            'category_image' => $imgStore,
+            'category_image' => $img,
         ]);
 
         return response()->json([
@@ -123,7 +119,7 @@ class CategoryController extends Controller
         $imgDB = explode('/', $category->category_image);
         $imgDB = end($imgDB);
 
-        $path = base_path("public/categories/$imgDB");
+        $path = base_path("public/images/categories/$imgDB");
 
         if(file_exists($path)) {
             unlink($path);

@@ -91,17 +91,15 @@ class MenuController extends Controller
         // UPLOAD IMAGE
         $img = $request->file('menu_image')->getClientOriginalExtension();
         $img = str_random(30) . '.' . $img;
-        $path = "menus/";
+        $path = "images/menus/";
         $request->file('menu_image')->move($path, $img);
-
-        $imgStore = 'http://localhost:8000/menus/' . $img;
 
         // INSERT
         $store = Menu::create([
             'menu_name' => $request->input('menu_name'),
             'menu_slug' => $menuSlug,
             'menu_price' => $request->input('menu_price'),
-            'menu_image' => $imgStore,
+            'menu_image' => $img,
             'menu_info' => $request->input('menu_info'),
             'menu_favorite' => $request->input('menu_favorite'),
             'menu_restaurant' => $request->input('menu_restaurant'),
@@ -136,21 +134,19 @@ class MenuController extends Controller
         }
 
         if(empty($request->file('menu_image'))) {
-            $imgStore = $menu->menu_image;
+            $img = $menu->menu_image;
         }else{
             // Save new image
             $img = $request->file('menu_image')->getClientOriginalExtension();
             $img = str_random(30) . '.' . $img;
-            $path = 'menus/';
+            $path = 'images/menus/';
             $request->file('menu_image')->move($path, $img);
-
-            $imgStore = 'http://localhost:8000/menus/' . $img;
 
             // and delete old image
             $imgDB = explode('/', $menu->menu_image);
             $imgDB = end($imgDB);
 
-            $path = base_path("public/menus/$imgDB");
+            $path = base_path("public/images/menus/$imgDB");
 
             if(file_exists($path)) {
                 unlink($path);
@@ -161,7 +157,7 @@ class MenuController extends Controller
             'menu_name' => $request->input('menu_name'),
             'menu_slug' => str_slug($request->input('menu_name'), '-'),
             'menu_price' => $request->input('menu_price'),
-            'menu_image' => $imgStore,
+            'menu_image' => $img,
             'menu_info' => $request->input('menu_info'),
             'menu_favorite' => $request->input('menu_favorite'),
         ]);
@@ -187,7 +183,7 @@ class MenuController extends Controller
         $imgDB = explode('/', $menu->menu_image);
         $imgDB = end($imgDB);
 
-        $path = base_path("public/menus/$imgDB");
+        $path = base_path("public/images/menus/$imgDB");
 
         if(file_exists($path)) {
             unlink($path);

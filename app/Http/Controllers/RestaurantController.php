@@ -72,17 +72,15 @@ class RestaurantController extends Controller
         // UPLOAD IMAGE
         $img = $request->file('restaurant_image')->getClientOriginalExtension();
         $img = str_random(30) . '.' . $img;
-        $path = "resto/";
+        $path = "images/resto/";
         $request->file('restaurant_image')->move($path, $img);
-
-        $imgStore = 'http://localhost:8000/resto/' . $img;
 
         $restaurant = $request->user()->restaurants()->create([
             'restaurant_name' => $request->input('restaurant_name'),
             'restaurant_slug' => $restaurantSlug,
             'restaurant_owner' => $request->input('restaurant_owner'),
             'restaurant_address' => $request->input('restaurant_address'),
-            'restaurant_image' => $imgStore,
+            'restaurant_image' => $img,
             'restaurant_latitude' => $request->input('restaurant_latitude'),
             'restaurant_longitude' => $request->input('restaurant_longitude'),
             'restaurant_description' => $request->input('restaurant_description'),
@@ -118,21 +116,19 @@ class RestaurantController extends Controller
         }
 
         if(empty($request->file('restaurant_image'))) {
-            $imgStore = $restaurant->restaurant_image;
+            $img = $restaurant->restaurant_image;
         }else{
             // Save new image
             $img = $request->file('restaurant_image')->getClientOriginalExtension();
             $img = str_random(30) . '.' . $img;
-            $path = 'resto/';
+            $path = 'images/resto/';
             $request->file('restaurant_image')->move($path, $img);
-
-            $imgStore = 'http://localhost:8000/resto/' . $img;
 
             // and delete old image
             $imgDB = explode('/', $restaurant->restaurant_image);
             $imgDB = end($imgDB);
 
-            $path = base_path("public/resto/$imgDB");
+            $path = base_path("public/images/resto/$imgDB");
 
             if(file_exists($path)) {
                 unlink($path);
@@ -144,7 +140,7 @@ class RestaurantController extends Controller
             'restaurant_slug' => str_slug($request->input('restaurant_name'), '-'),
             'restaurant_owner' => $request->input('restaurant_owner'),
             'restaurant_address' => $request->input('restaurant_address'),
-            'restaurant_image' => $imgStore,
+            'restaurant_image' => $img,
             'restaurant_latitude' => $request->input('restaurant_latitude'),
             'restaurant_longitude' => $request->input('restaurant_longitude'),
             'restaurant_description' => $request->input('restaurant_description'),
@@ -168,7 +164,7 @@ class RestaurantController extends Controller
         $imgDB = explode('/', $restaurant->restaurant_image);
         $imgDB = end($imgDB);
 
-        $path = base_path("public/resto/$imgDB");
+        $path = base_path("public/images/resto/$imgDB");
 
         if(file_exists($path)) {
             unlink($path);
