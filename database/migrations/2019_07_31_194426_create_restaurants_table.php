@@ -23,6 +23,7 @@ class CreateRestaurantsTable extends Migration
             $table->string('restaurant_latitude');
             $table->string('restaurant_longitude');
             $table->text('restaurant_description');
+            $table->integer('restaurant_seen')->default(0)->unsigned();
             $table->integer('restaurant_user')->unsigned();
             $table->timestamps();
 

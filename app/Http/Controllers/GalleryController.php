@@ -12,7 +12,7 @@ class GalleryController extends Controller
     public function all ()
     {
         $galleries = Gallery::with('restaurant')->paginate(10);
-        
+
         return response()->json($galleries, 200);
     }
 

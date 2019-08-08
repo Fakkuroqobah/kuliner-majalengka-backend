@@ -7,7 +7,6 @@ use App\Restaurant;
 use App\Like;
 use App\User;
 use Auth;
-use DB;
 
 class LikeController extends Controller
 {
@@ -43,16 +42,15 @@ class LikeController extends Controller
     {
         $restaurant = Restaurant::findOrFail($id);
         $user = $request->user()->id_user;
-        
-        $like = DB::select( DB::raw("SELECT * FROM `likes`, `restaurants`
-                                        WHERE likes.id_restaurant = restaurants.id_restaurant
-                                        AND likes.id_restaurant = $id
-                                        AND likes.id_user = $user ") );
 
-        if ($like !== []) {
+        $like = Like::with('restaurant')->where('likes.id_restaurant', '=', "$id")
+                                        ->where('likes.id_user', '=', "$user")
+                                        ->get();
+
+        if ($like->toArray() !== []) {
             return response()->json([
                 'error' => 'you have already liked'
-            ], 200);
+            ], 403);
         }
 
         $request->user()->likes()->create([
@@ -68,9 +66,11 @@ class LikeController extends Controller
     {
         $user = $request->user()->id_user;
 
-        $like = DB::select( DB::raw("DELETE FROM `likes` WHERE
-                                        likes.id_like = $id
-                                        AND likes.id_user = $user ") );
+        $like = Like::where('id_like', '=', "$id")
+                      ->where('id_user', '=', "$user")
+                      ->delete();
+
+        if(!$like) return response()->json(['error' => 'Access denied'], 403);
 
         return response()->json([
             'success' => 'unlike'

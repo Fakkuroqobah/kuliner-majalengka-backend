@@ -23,4 +23,9 @@ class Restaurant extends Model
     {
         return $this->hasMany(Menu::class, 'menu_user');
     }
+
+    public function likes()
+    {
+        return $this->hasMany(Like::class, 'id_user');
+    }
 }

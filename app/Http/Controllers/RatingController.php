@@ -8,7 +8,6 @@ use App\Rating;
 use App\User;
 use Validator;
 use Auth;
-use DB;
 
 class RatingController extends Controller
 {
@@ -64,14 +63,11 @@ class RatingController extends Controller
         $restaurant = Restaurant::findOrFail($id);
         $user = $request->user()->id_user;
 
-        $rating = DB::select( DB::raw("SELECT * FROM `ratings`, `restaurants`, `users`
-                                        WHERE ratings.rating_restaurant = restaurants.id_restaurant
-                                        AND ratings.rating_restaurant = $id
-                                        AND ratings.rating_user = $user ") );
+        $rating = Rating::with('restaurant')->where('ratings.rating_restaurant', '=', "$id")
+                      ->where('ratings.rating_user', '=', "$user")
+                      ->get();
 
-        // dd($rating);
-
-        if ($rating !== []) {
+        if ($rating->toArray() !== []) {
             return response()->json([
                 'error' => 'you have already rating'
             ], 401);

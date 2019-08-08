@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Restaurant;
+use App\Like;
 use Validator;
 use Auth;
 
@@ -19,6 +20,11 @@ class RestaurantController extends Controller
     public function show($restaurant)
     {
         $restaurant = Restaurant::with('user')->where('restaurant_slug', $restaurant)->first();
+
+        $seen = $restaurant->restaurant_seen;
+        $restaurant->update([
+            'restaurant_seen' => ++$seen
+        ]);
 
         if(!$restaurant) {
             return response()->json([
@@ -43,6 +49,24 @@ class RestaurantController extends Controller
             'result' => $restaurants,
             'total' => count($restaurants)
         ], 200);
+    }
+
+    public function popular()
+    {
+        $restaurant = Like::with('restaurant')
+                        ->selectRaw("id_restaurant, COUNT(likes.id_restaurant) AS total")
+                        ->groupBy("likes.id_restaurant")
+                        ->orderBy('total', 'DESC')
+                        ->paginate(10);
+
+        if (count($restaurant) == 0) {
+            $restaurant = Restaurant::selectRaw("*, COUNT(restaurants.restaurant_seen) AS total")
+                        ->groupBy("restaurants.id_restaurant")
+                        ->orderBy('total', 'DESC')
+                        ->paginate(10);
+        }
+
+        return response()->json($restaurant, 200);
     }
 
     public function create(Request $request)
@@ -112,7 +136,7 @@ class RestaurantController extends Controller
 
         // check user
         if(Auth::user()->id_user !== $restaurant->restaurant_user) {
-            return response()->json(['error' => "Oops"], 403);
+            return response()->json(['error' => "Access denied"], 403);
         }
 
         if(empty($request->file('restaurant_image'))) {
@@ -157,7 +181,7 @@ class RestaurantController extends Controller
 
         // check user
         if(Auth::user()->id_user !== $restaurant->restaurant_user) {
-            return response()->json(['error' => "Oops"], 403);
+            return response()->json(['error' => "Access denied"], 403);
         }
         
         // fetch image name

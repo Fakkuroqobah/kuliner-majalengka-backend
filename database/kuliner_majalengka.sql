@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 06, 2019 at 02:49 PM
+-- Generation Time: Aug 08, 2019 at 02:19 PM
 -- Server version: 10.1.37-MariaDB
 -- PHP Version: 7.3.0
 
@@ -37,16 +37,6 @@ CREATE TABLE `categories` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `categories`
---
-
-INSERT INTO `categories` (`id_category`, `category_name`, `category_image`, `category_user`, `created_at`, `updated_at`) VALUES
-(1, 'Masakan Inggris', 'http://localhost:8000/categories/y1vWBtfTKCpuS664EgGADS5qeNtjvN.png', 1, '2019-08-05 19:31:58', '2019-08-05 19:31:58'),
-(2, 'Masakan Jepang', 'http://localhost:8000/categories/cP2nJIQYDleXoqudjumq7zbJ68jPE2.png', 1, '2019-08-05 19:32:09', '2019-08-05 19:32:09'),
-(3, 'Masakan Italia', 'http://localhost:8000/categories/UzwWhHij8HALoHODoNDeeHVyxCQiQq.png', 2, '2019-08-05 19:32:27', '2019-08-05 19:32:27'),
-(4, 'Masakan Indonesia', 'http://localhost:8000/categories/48s33jQpsNokHMXgLF9PufBMGZWcIU.png', 2, '2019-08-05 19:32:45', '2019-08-05 19:32:45');
-
 -- --------------------------------------------------------
 
 --
@@ -75,14 +65,6 @@ CREATE TABLE `galleries` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `galleries`
---
-
-INSERT INTO `galleries` (`id_gallery`, `gallery_image`, `gallery_info`, `gallery_copyright`, `gallery_restaurant`, `created_at`, `updated_at`) VALUES
-(1, 'http://localhost:8000/galleries/4S8YUOhw2vY27t6X5JLnRVY8wOYdZn.jpg', 'Masakan Inggris', '@restocode', 1, '2019-08-05 19:38:42', '2019-08-05 19:38:42'),
-(2, 'http://localhost:8000/galleries/OTFMq1Ct0QL7Jg610WjhbTZUjaaqCe.jpg', 'Masakan Indonesia', '@wonderfulIndonesia', 4, '2019-08-05 19:39:11', '2019-08-05 19:39:11');
-
 -- --------------------------------------------------------
 
 --
@@ -102,9 +84,7 @@ CREATE TABLE `likes` (
 --
 
 INSERT INTO `likes` (`id_like`, `id_restaurant`, `id_user`, `created_at`, `updated_at`) VALUES
-(1, 1, 2, '2019-08-05 20:04:59', '2019-08-05 20:04:59'),
-(2, 4, 2, '2019-08-05 20:05:11', '2019-08-05 20:05:11'),
-(3, 3, 2, '2019-08-05 23:05:07', '2019-08-05 23:05:07');
+(1, 1, 1, '2019-08-08 03:19:39', '2019-08-08 03:19:39');
 
 -- --------------------------------------------------------
 
@@ -124,16 +104,6 @@ CREATE TABLE `menus` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `menus`
---
-
-INSERT INTO `menus` (`id_menu`, `menu_name`, `menu_slug`, `menu_price`, `menu_image`, `menu_info`, `menu_favorite`, `menu_restaurant`, `created_at`, `updated_at`) VALUES
-(1, 'Chicken fry', 'chicken-fry', 100000, 'http://localhost:8000/menus/ZO9YPqe7v8kwJuB62qbO2r5jUnOe6I.jpg', '100% Halal', 1, 1, '2019-08-05 19:06:09', '2019-08-05 19:06:09'),
-(2, 'Kopi arabika', 'kopi-arabika', 100000, 'http://localhost:8000/menus/tqBui8eyerbXNxuGG8nWDdaq5xOtdW.jpg', '100% Halal', 1, 1, '2019-08-05 19:17:23', '2019-08-05 19:17:23'),
-(3, 'Kopi cappuchino', 'kopi-cappuchino', 100000, 'http://localhost:8000/menus/QMfpQz6XCAQH90VXDnc5flbb6gRtmY.jpg', '100% Halal', 1, 3, '2019-08-05 19:18:54', '2019-08-05 19:18:54'),
-(4, 'Kopi Toraja', 'kopi-toraja', 100000, 'http://localhost:8000/menus/h87H2yn95jVZQjVUad7hcwyKuLzfrJ.jpg', '100% Halal', 1, 4, '2019-08-05 19:19:21', '2019-08-05 19:19:21');
 
 -- --------------------------------------------------------
 
@@ -189,9 +159,7 @@ CREATE TABLE `oauth_access_tokens` (
 --
 
 INSERT INTO `oauth_access_tokens` (`id`, `user_id`, `client_id`, `name`, `scopes`, `revoked`, `created_at`, `updated_at`, `expires_at`) VALUES
-('2094447b7c16482574a4a7270aba3aa0beecb29de6480588c2f88e2f3186ead7ea1dcd32978bd076', 1, 1, 'nApp', '[]', 0, '2019-08-05 18:21:14', '2019-08-05 18:21:14', '2020-08-05 18:21:14'),
-('746059a863639dad7bcd76e1669881df6a50af1fe2478f512af238dfd658e5b5e2b611f60751d27f', 2, 1, 'nApp', '[]', 0, '2019-08-05 18:22:40', '2019-08-05 18:22:40', '2020-08-05 18:22:40'),
-('e51f26ac6ba18d63ea29c7d22757cc10f993066e2f1316c6665e9df96b863255fb650613f10b0cb8', 1, 1, 'nApp', '[]', 0, '2019-08-05 18:23:35', '2019-08-05 18:23:35', '2020-08-05 18:23:35');
+('17b3fe9925d6f897da97dc6f7d9238034928423c6a0063017a633ee2efee75b0fbb78a39c32d3fd8', 1, 1, 'nApp', '[]', 0, '2019-08-08 02:41:47', '2019-08-08 02:41:47', '2020-08-07 19:41:47');
 
 -- --------------------------------------------------------
 
@@ -232,8 +200,8 @@ CREATE TABLE `oauth_clients` (
 --
 
 INSERT INTO `oauth_clients` (`id`, `user_id`, `name`, `secret`, `redirect`, `personal_access_client`, `password_client`, `revoked`, `created_at`, `updated_at`) VALUES
-(1, NULL, ' Personal Access Client', '2vUVn97eibImFfSXK3wHnZdjGSQQsiqRljzUsItI', 'http://localhost', 1, 0, 0, '2019-08-05 13:45:42', '2019-08-05 13:45:42'),
-(2, NULL, ' Password Grant Client', 'E6kdZ6DK1Vc3aueBrKW99V4Eh2o9Q7GX9ZqVwcXe', 'http://localhost', 0, 1, 0, '2019-08-05 13:45:42', '2019-08-05 13:45:42');
+(1, NULL, ' Personal Access Client', 'KgLk6urghLvfgvKfTSBxT5OWUsgzV8u9cwQKipuh', 'http://localhost', 1, 0, 0, '2019-08-08 02:39:46', '2019-08-08 02:39:46'),
+(2, NULL, ' Password Grant Client', 'MVwGRgIpE0us7HUbqvEop1ARGoluqDBltbz43fR9', 'http://localhost', 0, 1, 0, '2019-08-08 02:39:47', '2019-08-08 02:39:47');
 
 -- --------------------------------------------------------
 
@@ -253,7 +221,7 @@ CREATE TABLE `oauth_personal_access_clients` (
 --
 
 INSERT INTO `oauth_personal_access_clients` (`id`, `client_id`, `created_at`, `updated_at`) VALUES
-(1, 1, '2019-08-05 13:45:42', '2019-08-05 13:45:42');
+(1, 1, '2019-08-08 02:39:47', '2019-08-08 02:39:47');
 
 -- --------------------------------------------------------
 
@@ -284,15 +252,6 @@ CREATE TABLE `ratings` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `ratings`
---
-
-INSERT INTO `ratings` (`id_rating`, `rating_value`, `rating_comment`, `rating_restaurant`, `rating_user`, `created_at`, `updated_at`) VALUES
-(4, 10, 'Enak', 1, 1, '2019-08-06 09:38:57', '2019-08-06 09:38:57'),
-(5, 8, 'lezat', 1, 2, '2019-08-06 09:44:07', '2019-08-06 09:44:07'),
-(6, 8, 'Keren', 3, 2, '2019-08-06 09:44:46', '2019-08-06 09:44:46');
-
 -- --------------------------------------------------------
 
 --
@@ -309,6 +268,7 @@ CREATE TABLE `restaurants` (
   `restaurant_latitude` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `restaurant_longitude` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `restaurant_description` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `restaurant_seen` int(10) UNSIGNED NOT NULL DEFAULT '0',
   `restaurant_user` int(10) UNSIGNED NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
@@ -318,12 +278,9 @@ CREATE TABLE `restaurants` (
 -- Dumping data for table `restaurants`
 --
 
-INSERT INTO `restaurants` (`id_restaurant`, `restaurant_name`, `restaurant_slug`, `restaurant_owner`, `restaurant_address`, `restaurant_image`, `restaurant_latitude`, `restaurant_longitude`, `restaurant_description`, `restaurant_user`, `created_at`, `updated_at`) VALUES
-(1, 'Resto Code', 'resto-code', 'Agung Maulana', 'Yogyakarta', 'http://localhost:8000/resto/m05c3ovCTuVDzUpe8eNHv1jeB3tz5e.jpg', '19210', '29219', 'Tasty and Healty', 1, '2019-08-05 18:25:02', '2019-08-05 18:25:02'),
-(2, 'PHP Resto', 'php-resto', 'Agung Maulana', 'Bandung', 'http://localhost:8000/resto/Uoya2Wnwu6IyYdoPKYX0u1Sqoi1Woj.png', '19210', '29219', 'Lezat dan nikmat', 1, '2019-08-05 18:41:48', '2019-08-05 18:59:46'),
-(3, 'Cafetaria', 'cafetaria', 'Novariza', 'Bandung', 'http://localhost:8000/resto/sKo0T3q5u8pO0bhNsMGim5lNNfwY6H.jpg', '19210', '29219', 'kopi', 2, '2019-08-05 18:46:05', '2019-08-05 18:46:05'),
-(4, 'Cat resto', 'cat-resto', 'Novariza', 'Bandung', 'http://localhost:8000/resto/EkicrbrmPWSFCv2pcVqYB5lv0KVYRt.jpg', '19210', '29219', 'Kucing', 2, '2019-08-05 18:46:49', '2019-08-05 18:46:49'),
-(5, 'Restaurant Burger', 'restaurant-burger', 'Agung Maulana', 'Bandung', 'http://localhost:8000/resto/AC95kprLUkJen2PPiv2ik26hm09rRr.jpg', '-127212666128', '612729127112', 'Restaurant burger enak', 2, '2019-08-05 21:44:35', '2019-08-05 21:44:35');
+INSERT INTO `restaurants` (`id_restaurant`, `restaurant_name`, `restaurant_slug`, `restaurant_owner`, `restaurant_address`, `restaurant_image`, `restaurant_latitude`, `restaurant_longitude`, `restaurant_description`, `restaurant_seen`, `restaurant_user`, `created_at`, `updated_at`) VALUES
+(1, 'Restaurant Burger', 'restaurant-burger', 'Agung Maulana', 'Bandung', '7amHclGV699hfEj4LQoH162xqTscmZ.jpg', '-127212666128', '612729127112', 'Restaurant burger enak', 14, 1, '2019-08-08 02:43:33', '2019-08-08 03:30:34'),
+(2, 'Restaurant Steak', 'restaurant-steak', 'Agung Maulana', 'Bandung', 'LOW6MnYdmMmCBiXgcy0155xWbTlFi7.jpg', '-127212666128', '612729127112', 'Restaurant steak enak', 0, 1, '2019-08-08 03:28:12', '2019-08-08 03:28:12');
 
 -- --------------------------------------------------------
 
@@ -347,8 +304,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id_user`, `user_name`, `user_email`, `user_password`, `user_level`, `remember_token`, `created_at`, `updated_at`) VALUES
-(1, 'Agung Maulana', 'agung@mail.com', '$2y$10$nRqp0DuWAQ5iyykmZP/dS.EvBtxjcqgn4nxhth5j52hztcGmRgQDW', 'admin', NULL, '2019-08-05 18:21:13', '2019-08-05 18:21:13'),
-(2, 'Novariza', 'nova@mail.com', '$2y$10$Nk0sgSf9O/5iIARDInvplO2cQy7Gsah50vkxtV6iin2MH8qb8mEjK', 'admin', NULL, '2019-08-05 18:22:40', '2019-08-05 18:22:40');
+(1, 'Agung Maulana', 'agung@mail.com', '$2y$10$9MVSSr.SjSVc4ZlgdPbTdezJJN4aNmxsCNohJUkb7eIdUP1.5scWm', 'admin', NULL, '2019-08-08 02:41:44', '2019-08-08 02:41:44');
 
 --
 -- Indexes for dumped tables
@@ -460,7 +416,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `id_category` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_category` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `category_restaurant`
@@ -472,19 +428,19 @@ ALTER TABLE `category_restaurant`
 -- AUTO_INCREMENT for table `galleries`
 --
 ALTER TABLE `galleries`
-  MODIFY `id_gallery` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_gallery` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `likes`
 --
 ALTER TABLE `likes`
-  MODIFY `id_like` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_like` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `menus`
 --
 ALTER TABLE `menus`
-  MODIFY `id_menu` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_menu` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `migrations`
@@ -508,19 +464,19 @@ ALTER TABLE `oauth_personal_access_clients`
 -- AUTO_INCREMENT for table `ratings`
 --
 ALTER TABLE `ratings`
-  MODIFY `id_rating` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id_rating` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `restaurants`
 --
 ALTER TABLE `restaurants`
-  MODIFY `id_restaurant` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_restaurant` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id_user` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_user` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Constraints for dumped tables
