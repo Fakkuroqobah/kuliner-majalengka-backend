@@ -31,8 +31,8 @@ $router->get('/rating/{restaurant}', 'RatingController@show');
 $router->get('/like/{restaurant}', 'LikeController@show');
 
 $router->group(['middleware' => 'auth:api'], function() use($router) {
-
     // User
+    $router->post('/logout', 'UserController@logout');
     $router->get('/user/details', 'UserController@details');
     $router->post('/user/update', 'UserController@update');
 

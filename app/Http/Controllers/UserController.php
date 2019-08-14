@@ -7,22 +7,24 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Validator;
+use App\OauthAccessToken;
 use App\User;
 
 class UserController extends Controller
 {
     public function login(Request $request){
-        $email = $request->input('email');
-        $password = $request->input('password');
+        $email = $request->input('user_email');
+        $password = $request->input('user_password');
 
         $check = User::where('user_email', $email)->first();
 
         if($check !== null) {
             if(Hash::check($password, $check->user_password)){
-                $success['token'] =  $check->createToken('nApp')->accessToken;
+                $success['token'] =  $check->createToken($request->input('user_email'))->accessToken;
                 return response()->json([
                     'success' => "You have successfully logged in",
-                    'token' => $success['token']
+                    'token' => $success['token'],
+                    'user' => Auth::user()
                 ], 200);
             }else{
                 return response()->json(['error'=>'Try again'], 401);
@@ -30,6 +32,8 @@ class UserController extends Controller
         }else{
             return response()->json(['error'=>'Unauthorized'], 401);
         }
+
+        return response()->json(['error'=>'wow'], 405);
     }
 
     public function register(Request $request)
@@ -42,7 +46,7 @@ class UserController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 401);            
+            return response()->json(['error' => $validator->errors()], 422);
         }
 
         $user = User::create([
@@ -50,9 +54,10 @@ class UserController extends Controller
             'user_email' => $request->input('user_email'),
             'user_password' => Hash::make($request->input('user_password')),
             'user_level' => $request->input('user_level'),
+            'user_level' => 'user',
         ]);
 
-        $success['token'] =  $user->createToken('nApp')->accessToken;
+        $success['token'] =  $user->createToken($request->input('user_name'))->accessToken;
         $success['name'] =  $user->user_name;
 
         return response()->json([
@@ -61,10 +66,18 @@ class UserController extends Controller
         ], 200);
     }
 
+    public function logout()
+    {
+        if(Auth::check()) {
+            Auth::user()->OauthAccessToken()->delete();
+
+            return response()->json(['success' => 'logout successfully'], 200);
+        }
+    }
+
     public function details()
     {
-        $user = Auth::user();
-        return response()->json($user, 200);
+        return response()->json(['user' => Auth::user()], 200);
     }
 
     public function update(Request $request)

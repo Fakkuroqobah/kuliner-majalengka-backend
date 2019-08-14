@@ -48,12 +48,13 @@ $app->singleton(
 
 /*
 |--------------------------------------------------------------------------
-| Load config auth
+| Load config
 |--------------------------------------------------------------------------
 |
 */
 
 $app->configure('auth');
+$app->configure('cors');
 
 /*
 |--------------------------------------------------------------------------
@@ -66,12 +67,14 @@ $app->configure('auth');
 |
 */
 
-// $app->middleware([
-//     App\Http\Middleware\ExampleMiddleware::class
-// ]);
+$app->middleware([
+    \Barryvdh\Cors\HandleCors::class,
+    // App\Http\Middleware\CorsMiddleware::class,
+]);
 
 $app->routeMiddleware([
     'auth' => App\Http\Middleware\Authenticate::class,
+    // 'cors' => App\Http\Middleware\CorsMiddleware::class
 ]);
 
 /*
@@ -89,6 +92,7 @@ $app->register(App\Providers\AppServiceProvider::class);
 $app->register(App\Providers\AuthServiceProvider::class);
 $app->register(App\Providers\EventServiceProvider::class);
 
+$app->register(Barryvdh\Cors\ServiceProvider::class);
 $app->register(Flipbox\LumenGenerator\LumenGeneratorServiceProvider::class);
 $app->register(Laravel\Passport\PassportServiceProvider::class);
 $app->register(Dusterio\LumenPassport\PassportServiceProvider::class);

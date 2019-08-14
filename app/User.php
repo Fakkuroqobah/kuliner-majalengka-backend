@@ -51,4 +51,9 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     {
         return $this->hasMany(Like::class, 'id_user');
     }
+
+    public function OauthAccessToken()
+    {
+        return $this->hasMany(OauthAccessToken::class, 'user_id');
+    }
 }
