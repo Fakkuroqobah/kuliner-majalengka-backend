@@ -27,10 +27,10 @@ class UserController extends Controller
                     'user' => Auth::user()
                 ], 200);
             }else{
-                return response()->json(['error'=>'Try again'], 401);
+                return response()->json(['error'=>'Password salah'], 401);
             }
         }else{
-            return response()->json(['error'=>'Unauthorized'], 401);
+            return response()->json(['error'=>'Email tidak terdaftar'], 401);
         }
 
         return response()->json(['error'=>'wow'], 405);
@@ -42,7 +42,7 @@ class UserController extends Controller
             'user_name' => 'required|max:20',
             'user_email' => 'required|email|unique:users,user_email',
             'user_password' => 'required',
-            'c_password' => 'required|same:user_password',
+            'password_confirmation' => 'required|same:user_password',
         ]);
 
         if ($validator->fails()) {

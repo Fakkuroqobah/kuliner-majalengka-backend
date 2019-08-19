@@ -51,6 +51,63 @@ class RestaurantController extends Controller
         ], 200);
     }
 
+    public function category($restaurant)
+    {
+        $restaurants = Restaurant::with('categories')->where('restaurant_slug', $restaurant)->get();
+
+        if(!$restaurants) {
+            return response()->json([
+                'error' => 'category not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'result' => $restaurants,
+            'total' => count($restaurants)
+        ], 200);
+    }
+
+    public function menu($restaurant)
+    {
+        $restaurants = Restaurant::with('menus')->where('restaurant_slug', $restaurant)->get();
+
+        if(!$restaurants) {
+            return response()->json([
+                'error' => 'menu not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'result' => $restaurants,
+            'total' => count($restaurants)
+        ], 200);
+    }
+
+    public function gallery($restaurant)
+    {
+        $restaurants = Restaurant::with('galleries')->where('restaurant_slug', $restaurant)->get();
+
+        if(!$restaurants) {
+            return response()->json([
+                'error' => 'gallery not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'result' => $restaurants,
+            'total' => count($restaurants)
+        ], 200);
+    }
+
+    public function like($restaurant)
+    {
+        $restaurants = Restaurant::with('likes')->where('restaurant_slug', $restaurant)->get();
+
+        return response()->json([
+            'total' => count($restaurants[0]['likes'])
+        ], 200);
+    }
+
     public function popular()
     {
         $restaurant = Like::with('restaurant')
@@ -76,13 +133,14 @@ class RestaurantController extends Controller
             'restaurant_owner' => 'required|max:30',
             'restaurant_address' => 'required',
             'restaurant_image' => 'required|max:2000|mimes:jpeg,jpg,png,bmp',
+            'restaurant_category' => 'required',
             'restaurant_latitude' => 'required',
             'restaurant_longitude' => 'required',
             'restaurant_description' => 'required',
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 401);
+            return response()->json(['error' => $validator->errors()], 422);
         }
 
         $restaurant = Restaurant::where('restaurant_name', $request->input('restaurant_name'))->first();
@@ -129,7 +187,7 @@ class RestaurantController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 401);
+            return response()->json(['error' => $validator->errors()], 422);
         }
 
         $restaurant = Restaurant::findOrFail($id);

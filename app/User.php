@@ -29,7 +29,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
      * @var array
      */
     protected $hidden = [
-        'user_password', 'remember_token'
+        'user_password', 'user_level', 'created_at', 'updated_at', 'remember_token'
     ];
 
     public function restaurants()

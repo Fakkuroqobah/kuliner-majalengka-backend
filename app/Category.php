@@ -13,4 +13,9 @@ class Category extends Model
     {
         return $this->belongsTo(User::class, 'category_user', 'id_user');
     }
+
+    public function restaurants()
+    {
+        return $this->belongsToMany(Restaurant::class, 'category_restaurant', 'id_category', 'id_restaurant');
+    }
 }

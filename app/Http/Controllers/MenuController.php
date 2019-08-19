@@ -76,7 +76,7 @@ class MenuController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 401);            
+            return response()->json(['error' => $validator->errors()], 422);            
         }
 
         // CREATE SLUG
@@ -113,14 +113,13 @@ class MenuController extends Controller
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'menu_image' => 'max:2000|mimes:jpeg,jpg,png,bmp',
             'menu_name' => 'required',
             'menu_price' => 'required',
             'menu_info' => 'required',
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 401);
+            return response()->json(['error' => $validator->errors()], 422);
         }
 
         $menu = Menu::findOrFail($id);

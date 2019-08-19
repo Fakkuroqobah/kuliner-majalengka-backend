@@ -20,14 +20,13 @@ class RatingController extends Controller
         if (count($ratings) > 0) {
             foreach ($ratings as $value) {
                 $result  = ( count($ratings) / $value->rating_value ) * 100;
-                $value = substr($result, 0,4);
+                $value = doubleval(substr($result, 0,3));
             }
         }else{
             $value = "0";
         }
 
         return response()->json([
-            'result' => $ratings,
             'total' => count($ratings),
             'value' => $value
         ], 200);
@@ -57,7 +56,7 @@ class RatingController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 401);
+            return response()->json(['error' => $validator->errors()], 422);
         }
 
         $restaurant = Restaurant::findOrFail($id);
@@ -70,7 +69,7 @@ class RatingController extends Controller
         if ($rating->toArray() !== []) {
             return response()->json([
                 'error' => 'you have already rating'
-            ], 401);
+            ], 403);
         }
 
         $request->user()->ratings()->create([
@@ -92,7 +91,7 @@ class RatingController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 401);
+            return response()->json(['error' => $validator->errors()], 422);
         }
 
         $rating = Rating::findOrFail($id);

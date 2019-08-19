@@ -38,24 +38,32 @@ $router->group(['middleware' => 'auth:api'], function() use($router) {
 
     // Restaurant
     $router->get('/restaurant/owner', 'RestaurantController@owner');
+    $router->get('/restaurant/categories/{restaurant}', 'RestaurantController@category');
+    $router->get('/restaurant/galleries/{restaurant}', 'RestaurantController@gallery');
+    $router->get('/restaurant/menus/{restaurant}', 'RestaurantController@menu');
+    $router->get('/restaurant/likes/{restaurant}', 'RestaurantController@like');
     $router->post('/restaurant/create', 'RestaurantController@create');
     $router->post('/restaurant/update/{id}', 'RestaurantController@update');
     $router->delete('/restaurant/delete/{id}', 'RestaurantController@delete');
 
-    // menu
-    $router->get('/menu/owner', 'MenuController@owner');
-    $router->post('/menu/create', 'MenuController@create');
-    $router->post('/menu/update/{id}', 'MenuController@update');
-    $router->delete('/menu/delete/{id}', 'MenuController@delete');
+    // category restaurant
+    $router->get('/categoryRestaurant/{id}', 'CategoryRestaurantController@index');
 
     // Category
     $router->get('/category/owner', 'CategoryController@owner');
     $router->post('/category/create', 'CategoryController@create');
     $router->post('/category/update/{id}', 'CategoryController@update');
     $router->delete('/category/delete/{id}', 'CategoryController@delete');
+    
+    // menu
+    $router->get('/menu/owner', 'MenuController@owner');
+    $router->post('/menu/create', 'MenuController@create');
+    $router->post('/menu/update/{id}', 'MenuController@update');
+    $router->delete('/menu/delete/{id}', 'MenuController@delete');
 
     // Gallery
     $router->get('/gallery/owner', 'GalleryController@owner');
+    $router->get('/gallery/{id}', 'GalleryController@show');
     $router->post('/gallery/create', 'GalleryController@create');
     $router->post('/gallery/update/{id}', 'GalleryController@update');
     $router->delete('/gallery/delete/{id}', 'GalleryController@delete');

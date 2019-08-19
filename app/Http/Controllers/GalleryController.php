@@ -28,6 +28,16 @@ class GalleryController extends Controller
         ], 200);
     }
 
+    public function show($id)
+    {
+        $galleries = Gallery::where('id_gallery', '=', $id)->get();
+
+        return response()->json([
+            'result' => $galleries,
+            'total' => count($galleries)
+        ], 200);
+    }
+
     public function owner()
     {
         $galleries = Gallery::with('restaurant')->whereHas('restaurant', function($q) {
@@ -56,7 +66,7 @@ class GalleryController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 401);            
+            return response()->json(['error' => $validator->errors()], 422);            
         }
 
         // UPLOAD IMAGE
@@ -80,14 +90,13 @@ class GalleryController extends Controller
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'gallery_image' => 'max:2000|mimes:jpeg,jpg,png,bmp',
             'gallery_info' => 'required',
             'gallery_copyright' => 'required',
             'gallery_restaurant' => 'required',
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 401);
+            return response()->json(['error' => $validator->errors()], 422);
         }
 
         // check user
