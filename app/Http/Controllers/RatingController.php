@@ -11,11 +11,24 @@ use Auth;
 
 class RatingController extends Controller
 {
-    public function show ($restaurant)
+    public function all()
+    {
+        $ratings = Rating::with('user', 'restaurant')->whereHas('restaurant', function($q) {
+            $q->where('restaurants.restaurant_user', '=', Auth::user()->id_user);
+        })->paginate(5);
+
+        if(!$ratings) return $this->sendResponseNotFoundApi();
+
+        return $this->sendResponseOkApi($ratings);
+    }
+
+    public function show($restaurant)
     {
         $ratings = Rating::with('user', 'restaurant')->whereHas('restaurant', function($q) use($restaurant) {
             $q->where('restaurants.restaurant_slug', '=', "$restaurant");
         })->get();
+
+        if(!$ratings) return $this->sendResponseNotFoundApi();
 
         if (count($ratings) > 0) {
             foreach ($ratings as $value) {
@@ -26,26 +39,23 @@ class RatingController extends Controller
             $value = "0";
         }
 
-        return response()->json([
+        return $this->sendResponseOkApi([
+            'result' => $ratings,
             'total' => count($ratings),
             'value' => $value
-        ], 200);
+        ]);
     }
 
     public function owner()
     {
-        $ratings = Rating::with('user', 'restaurant')->where('rating_user', Auth::user()->id_user)->get();
+        $ratings = Rating::with('user', 'restaurant')->where('rating_user', '=', Auth::user()->id_user)->get();
 
-        if(!$ratings) {
-            return response()->json([
-                'error' => 'Rating not found'
-            ], 404);
-        }
+        if(!$ratings) return $this->sendResponseNotFoundApi();
 
-        return response()->json([
+        return $this->sendResponseOkApi([
             'result' => $ratings,
             'total' => count($ratings)
-        ], 200);
+        ]);
     }
 
     public function create(Request $request, $id)
@@ -55,32 +65,31 @@ class RatingController extends Controller
             'rating_comment' => 'required',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
-        }
+        if ($validator->fails()) return $this->sendResponseUnproccessApi(['error' => $validator->errors()]);
 
         $restaurant = Restaurant::findOrFail($id);
+
+        if(!$restaurant) return $this->sendResponseNotFoundApi();
+
         $user = $request->user()->id_user;
 
         $rating = Rating::with('restaurant')->where('ratings.rating_restaurant', '=', "$id")
                       ->where('ratings.rating_user', '=', "$user")
                       ->get();
 
-        if ($rating->toArray() !== []) {
-            return response()->json([
-                'error' => 'you have already rating'
-            ], 403);
-        }
+        if(!$rating) return $this->sendResponseNotFoundApi();
 
-        $request->user()->ratings()->create([
+        if ($rating->toArray() !== []) return $this->sendResponseForbiddenApi('you have already rating');
+
+        $create = $request->user()->ratings()->create([
             'rating_value' => $request->input('rating_value'),
             'rating_comment' => $request->input('rating_comment'),
             'rating_restaurant' => $restaurant->id_restaurant,
         ]);
 
-        return response()->json([
-            'success' => 'Data successfully created',
-        ], 200);
+        if(!$create) return $this->sendResponseBadRequestApi();
+
+        return $this->sendResponseCreatedApi();
     }
 
     public function update(Request $request, $id)
@@ -90,40 +99,38 @@ class RatingController extends Controller
             'rating_comment' => 'required',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
-        }
+        if ($validator->fails()) return $this->sendResponseUnproccessApi(['error' => $validator->errors()]);
 
         $rating = Rating::findOrFail($id);
 
-        // check user
-        if(Auth::user()->id_user !== $rating->rating_user) {
-            return response()->json(['error' => "Access denied"], 403);
-        }
+        if(!$rating) return $this->sendResponseNotFoundApi();
 
-        $rating->update([
+        // check user
+        if(Auth::user()->id_user !== $rating->rating_user) return $this->sendResponseForbiddenApi();
+
+        $update = $rating->update([
             'rating_value' => $request->input('rating_value'),
             'rating_comment' => $request->input('rating_comment'),
         ]);
 
-        return response()->json([
-            'success' => 'Data successfully updated',
-        ], 200);
+        if(!$update) return $this->sendResponseBadRequestApi();
+
+        return $this->sendResponseUpdatedApi();
     }
 
     public function delete($id)
     {
         $rating = Rating::findOrFail($id);
 
-        // check user
-        if(Auth::user()->id_user !== $rating->rating_user) {
-            return response()->json(['error' => "Access denied"], 403);
-        }
-        
-        $rating->delete();
+        if(!$rating) return $this->sendResponseNotFoundApi();
 
-        return response()->json([
-            'success' => 'Data successfully delete'
-        ]);
+        // check user
+        if(Auth::user()->id_user !== $rating->rating_user) return $this->sendResponseForbiddenApi();
+        
+        $delete = $rating->delete();
+
+        if(!$delete) return $this->sendResponseBadRequestApi();
+
+        return $this->sendResponseDeletedApi();
     }
 }

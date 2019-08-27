@@ -22,25 +22,18 @@ class MenuController extends Controller
             }
         }
         
-        return response()->json($menus, 200);
+        return $this->sendResponseOkApi($menus);
     }
 
     public function owner()
     {
         $menus = Menu::with('restaurant')->whereHas('restaurant', function($q) {
             $q->where('restaurants.restaurant_user', '=', Auth::user()->id_user);
-        })->get();
+        })->paginate(16);
 
-        if(!$menus) {
-            return response()->json([
-                'error' => 'Menu not found'
-            ], 404);
-        }
+        if(!$menus) return $this->sendResponseNotFoundApi();
 
-        return response()->json([
-            'result' => $menus,
-            'total' => count($menus)
-        ], 200);
+        return $this->sendResponseOkApi($menus);
     }
 
     public function index($restaurant)
@@ -49,10 +42,12 @@ class MenuController extends Controller
             $q->where('restaurants.restaurant_slug', '=', "$restaurant");
         })->get();
 
-        return response()->json([
+        if(!$menus) return $this->sendResponseNotFoundApi();
+
+        return $this->sendResponseOkApi([
             'result' => $menus,
             'total' => count($menus)
-        ], 200);
+        ]);
     }
 
     public function show($restaurant, $menu)
@@ -61,7 +56,19 @@ class MenuController extends Controller
             $q->where('restaurants.restaurant_slug', '=', "$restaurant");
         })->get();
 
-        return response()->json($menu[0], 200);
+        if(!$menu) return $this->sendResponseNotFoundApi();
+
+        return $this->sendResponseOkApi($menu[0]);
+    }
+
+    public function search(Request $request)
+    {
+        $key = $request->input('key');
+        $menus = Menu::with('restaurant')->where('menu_name', 'LIKE', "%$key%")->whereHas('restaurant', function($q) {
+            $q->where('restaurants.restaurant_user', '=', Auth::user()->id_user);
+        })->paginate(8);
+
+        return $this->sendResponseOkApi($menus,);
     }
 
     public function create(Request $request)
@@ -75,9 +82,7 @@ class MenuController extends Controller
             'menu_restaurant' => 'required',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);            
-        }
+        if ($validator->fails()) return $this->sendResponseUnproccessApi(['error' => $validator->errors()]);
 
         // CREATE SLUG
         $menu = Menu::where('menu_name', $request->input('menu_name'))->first();
@@ -95,7 +100,7 @@ class MenuController extends Controller
         $request->file('menu_image')->move($path, $img);
 
         // INSERT
-        $store = Menu::create([
+        $create = Menu::create([
             'menu_name' => $request->input('menu_name'),
             'menu_slug' => $menuSlug,
             'menu_price' => $request->input('menu_price'),
@@ -105,9 +110,9 @@ class MenuController extends Controller
             'menu_restaurant' => $request->input('menu_restaurant'),
         ]);
 
-        return response()->json([
-            'message' => 'Data successfully created',
-        ], 200);
+        if(!$create) return $this->sendResponseBadRequestApi();
+
+        return $this->sendResponseCreatedApi();
     }
 
     public function update(Request $request, $id)
@@ -116,22 +121,25 @@ class MenuController extends Controller
             'menu_name' => 'required',
             'menu_price' => 'required',
             'menu_info' => 'required',
+            'menu_image' => 'sometimes|mimes:jpeg,jpg,png,bmp|max:2000',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
-        }
+        if ($validator->fails()) return $this->sendResponseUnproccessApi(['error' => $validator->errors()]);
 
         $menu = Menu::findOrFail($id);
 
+        if(!$menu) return $this->sendResponseNotFoundApi();
+
         // check user
         $id_menu = Menu::with('restaurant')->where('menus.id_menu', '=', $id)->get();
+
+        if(!$id_menu) return $this->sendResponseNotFoundApi();
+
         foreach ($id_menu as $id_user) {
-            if (Auth::user()->id_user !== $id_user->restaurant->restaurant_user) {
-                return response()->json(['error' => "Access denied"], 403);
-            }
+            if (Auth::user()->id_user !== $id_user->restaurant->restaurant_user) return $this->sendResponseForbiddenApi();
         }
 
+        // UPLOAD IMAGE
         if(empty($request->file('menu_image'))) {
             $img = $menu->menu_image;
         }else{
@@ -152,7 +160,8 @@ class MenuController extends Controller
             }
         }
 
-        $menu->update([
+        // UPDATE
+        $update = $menu->update([
             'menu_name' => $request->input('menu_name'),
             'menu_slug' => str_slug($request->input('menu_name'), '-'),
             'menu_price' => $request->input('menu_price'),
@@ -161,22 +170,30 @@ class MenuController extends Controller
             'menu_favorite' => $request->input('menu_favorite'),
         ]);
 
-        return response()->json([
-            'message' => 'Data successfully updated',
-        ], 200);
+        if(!$update) return $this->sendResponseBadRequestApi();
+
+        return $this->sendResponseUpdatedApi();
     }
 
     public function delete($id)
     {
         $menu = Menu::findOrFail($id);
 
+        if(!$menu) return $this->sendResponseNotFoundApi();
+
         // check user
         $id_menu = Menu::with('restaurant')->where('menus.id_menu', '=', $id)->get();
+
+        if(!$id_menu) return $this->sendResponseNotFoundApi();
+
         foreach ($id_menu as $id_user) {
-            if (Auth::user()->id_user !== $id_user->restaurant->restaurant_user) {
-                return response()->json(['error' => "Access denied"], 403);
-            }
+            if (Auth::user()->id_user !== $id_user->restaurant->restaurant_user) return $this->sendResponseForbiddenApi();
         }
+
+        // DELETE
+        $delete = $menu->delete();
+
+        if(!$delete) return $this->sendResponseBadRequestApi();
 
         // fetch image name
         $imgDB = explode('/', $menu->menu_image);
@@ -188,10 +205,6 @@ class MenuController extends Controller
             unlink($path);
         }
 
-        $menu->delete();
-
-        return response()->json([
-            'message' => 'Data successfully delete'
-        ]);
+        return $this->sendResponseDeletedApi();
     }
 }

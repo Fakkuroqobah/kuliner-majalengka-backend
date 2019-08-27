@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Validator;
+use App\Http\Controllers\Controller;
 use App\OauthAccessToken;
 use App\User;
+use Validator;
 
 class UserController extends Controller
 {
@@ -21,19 +21,18 @@ class UserController extends Controller
         if($check !== null) {
             if(Hash::check($password, $check->user_password)){
                 $success['token'] =  $check->createToken($request->input('user_email'))->accessToken;
-                return response()->json([
-                    'success' => "You have successfully logged in",
+                return $this->sendResponseOkApi([
                     'token' => $success['token'],
                     'user' => Auth::user()
-                ], 200);
+                ], 'You have successfully logged in');
             }else{
-                return response()->json(['error'=>'Password salah'], 401);
+                return $this->sendResponseUnauthorizedApi('Password salah');
             }
         }else{
-            return response()->json(['error'=>'Email tidak terdaftar'], 401);
+            return $this->sendResponseUnauthorizedApi('Email tidak terdaftar');
         }
 
-        return response()->json(['error'=>'wow'], 405);
+        return $this->sendResponseBadRequestApi();
     }
 
     public function register(Request $request)
@@ -45,9 +44,7 @@ class UserController extends Controller
             'password_confirmation' => 'required|same:user_password',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
-        }
+        if ($validator->fails()) return $this->sendResponseUnproccessApi(['error' => $validator->errors()]);
 
         $user = User::create([
             'user_name' => $request->input('user_name'),
@@ -57,27 +54,30 @@ class UserController extends Controller
             'user_level' => 'user',
         ]);
 
+        if(!$user) return $this->sendResponseBadRequestApi();
+
         $success['token'] =  $user->createToken($request->input('user_name'))->accessToken;
         $success['name'] =  $user->user_name;
 
-        return response()->json([
-            'success' => "You have been registered",
+        return $this->sendResponseCreatedApi([
             'token' => $success['token']
-        ], 200);
+        ], 'You have been registered');
     }
 
     public function logout()
     {
         if(Auth::check()) {
-            Auth::user()->OauthAccessToken()->delete();
+            $delete = Auth::user()->OauthAccessToken()->delete();
 
-            return response()->json(['success' => 'logout successfully'], 200);
+            if(!$delete) return $this->sendResponseBadRequestApi();
+
+            return $this->sendResponseOkApi([], 'logout successfully');
         }
     }
 
     public function details()
     {
-        return response()->json(['user' => Auth::user()], 200);
+        return $this->sendResponseOkApi(['user' => Auth::user()]);
     }
 
     public function update(Request $request)
@@ -86,17 +86,18 @@ class UserController extends Controller
             'user_name' => 'required|max:20'
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 401);            
-        }
+        if ($validator->fails()) return $this->sendResponseUnproccessApi(['error' => $validator->errors()]);
 
-        $user = User::find(Auth::user()->id_user);
-        $user->update([
+        $user = User::findOrFail(Auth::user()->id_user);
+
+        if(!$user) return $this->sendResponseNotFoundApi();
+
+        $update = $user->update([
             'user_name' => $request->input('user_name')
         ]);
 
-        return response()->json([
-            'success' => "User successfully updated",
-        ], 200);
+        if(!$update) return $this->sendResponseBadRequestApi();
+
+        return $this->sendResponseUpdatedApi();
     }
 }

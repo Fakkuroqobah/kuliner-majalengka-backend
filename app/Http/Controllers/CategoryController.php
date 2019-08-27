@@ -12,36 +12,30 @@ class CategoryController extends Controller
     public function all ()
     {
         $categories = Category::with('user')->paginate(10);
-        
-        return response()->json($categories, 200);
+
+        return $this->sendResponseOkApi($categories);
     }
 
     public function owner()
     {
-        $categories = Category::with('user')->where('category_user', Auth::user()->id_user)->get();
+        $categories = Category::with('user')->where('category_user', '=', Auth::user()->id_user)->get();
 
-        if(!$categories) {
-            return response()->json([
-                'error' => 'category not found'
-            ], 404);
-        }
+        if(!$categories) return $this->sendResponseNotFoundApi();
 
-        return response()->json([
+        return $this->sendResponseOkApi([
             'result' => $categories,
             'total' => count($categories)
-        ], 200);
+        ]);
     }
 
     public function create(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'category_name' => 'required',
-            'category_image' => 'required',
+            'category_image' => 'required|max:2000|mimes:jpeg,jpg,png,bmp',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
-        }
+        if ($validator->fails()) return $this->sendResponseUnproccessApi(['error' => $validator->errors()]);
 
         // UPLOAD IMAGE
         $img = $request->file('category_image')->getClientOriginalExtension();
@@ -49,33 +43,34 @@ class CategoryController extends Controller
         $path = "images/categories/";
         $request->file('category_image')->move($path, $img);
 
-        $request->user()->categories()->create([
+        // CREATE
+        $create = $request->user()->categories()->create([
             'category_name' => $request->input('category_name'),
             'category_image' => $img,
         ]);
+        
+        if(!$create) return $this->sendResponseBadRequestApi();
 
-        return response()->json([
-            'message' => 'Data successfully created',
-        ], 200);
+        return $this->sendResponseCreatedApi();
     }
 
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
             'category_name' => 'required',
+            'category_image' => 'sometimes|mimes:jpeg,jpg,png,bmp|max:2000',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
-        }
+        if ($validator->fails()) return $this->sendResponseUnproccessApi(['error' => $validator->errors()]);
 
         $category = Category::findOrFail($id);
 
-        // check user
-        if(Auth::user()->id_user !== $category->category_user) {
-            return response()->json(['error' => "Access denied"], 403);
-        }
+        if(!$category) return $this->sendResponseNotFoundApi();
 
+        // check user
+        if(Auth::user()->id_user !== $category->category_user) return $this->sendResponseForbiddenApi();
+
+        // UPLOAD
         if(empty($request->file('category_image'))) {
             $img = $category->category_image;
         }else{
@@ -96,25 +91,31 @@ class CategoryController extends Controller
             }
         }
 
-        $category->update([
+        // UPDATE
+        $update = $category->update([
             'category_name' => $request->input('category_name'),
             'category_image' => $img,
         ]);
 
-        return response()->json([
-            'message' => 'Data successfully updated',
-        ], 200);
+        if(!$update) return $this->sendResponseBadRequestApi();
+
+        return $this->sendResponseUpdatedApi();
     }
 
     public function delete($id)
     {
         $category = Category::findOrFail($id);
 
-        // check user
-        if(Auth::user()->id_user !== $category->category_user) {
-            return response()->json(['error' => "Access denied"], 403);
-        }
+        if(!$category) return $this->sendResponseNotFoundApi();
 
+        // check user
+        if(Auth::user()->id_user !== $category->category_user) return $this->sendResponseForbiddenApi();
+
+        // DELETE
+        $delete = $category->delete();
+
+        if(!$delete) return $this->sendResponseBadRequestApi();
+        
         // fetch image name
         $imgDB = explode('/', $category->category_image);
         $imgDB = end($imgDB);
@@ -125,10 +126,6 @@ class CategoryController extends Controller
             unlink($path);
         }
 
-        $category->delete();
-
-        return response()->json([
-            'message' => 'Data successfully delete'
-        ]);
+        return $this->sendResponseDeletedApi();
     }
 }

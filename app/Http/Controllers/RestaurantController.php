@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Restaurant;
+use App\Rating;
 use App\Like;
 use Validator;
 use Auth;
@@ -14,98 +15,122 @@ class RestaurantController extends Controller
     {
         $restaurants = Restaurant::with('user')->paginate(10);
         
-        return response()->json($restaurants, 200);
+        return $this->sendResponseOkApi($restaurants);
     }
 
-    public function show($restaurant)
+    public function show($restaurant_name)
     {
-        $restaurant = Restaurant::with('user')->where('restaurant_slug', $restaurant)->first();
-
-        $seen = $restaurant->restaurant_seen;
-        $restaurant->update([
-            'restaurant_seen' => ++$seen
-        ]);
-
+        $restaurant = Restaurant::with('user')
+                                    ->where('restaurant_slug', $restaurant_name)
+                                    ->where('restaurant_user', '=', Auth::user()->id_user)->first();
+        
         if(!$restaurant) {
-            return response()->json([
-                'error' => 'Restaurant not found'
-            ], 404);
+            $restaurant = Restaurant::with('user')->where('restaurant_slug', $restaurant_name)->first();
+
+            $seen = $restaurant->restaurant_seen;
+            $restaurant->update([
+                'restaurant_seen' => ++$seen
+            ]);
+
         }
 
-        return response()->json($restaurant, 200);
+        return $this->sendResponseOkApi($restaurant);
     }
 
     public function owner()
     {
-        $restaurants = Restaurant::with('user')->where('restaurant_user', Auth::user()->id_user)->get();
+        $restaurants = Restaurant::with('user', 'ratings')->where('restaurant_user', '=', Auth::user()->id_user)->paginate(6);
 
-        if(!$restaurants) {
-            return response()->json([
-                'error' => 'Restaurant not found'
-            ], 404);
-        }
+        if(!$restaurants) return $this->sendResponseNotFoundApi();
 
-        return response()->json([
-            'result' => $restaurants,
-            'total' => count($restaurants)
-        ], 200);
+        return $this->sendResponseOkApi($restaurants);
+    }
+
+    public function search(Request $request)
+    {
+        $key = $request->input('key');
+        $restaurants = Restaurant::where('restaurant_name', 'LIKE', "%$key%")->where('restaurant_user', '=', Auth::user()->id_user)->paginate(8);
+
+        return $this->sendResponseOkApi($restaurants);
     }
 
     public function category($restaurant)
     {
-        $restaurants = Restaurant::with('categories')->where('restaurant_slug', $restaurant)->get();
+        $restaurants = Restaurant::with('categories')->where('restaurant_slug', '=', $restaurant)->get();
 
-        if(!$restaurants) {
-            return response()->json([
-                'error' => 'category not found'
-            ], 404);
+        if(!$restaurants) return $this->sendResponseNotFoundApi();
+
+        $arr = [];
+        foreach ($restaurants as $restaurant) {
+            foreach ($restaurant['categories'] as $id_category) {
+                $arr[] = $id_category['id_category'];
+            }
         }
 
-        return response()->json([
+        return $this->sendResponseOkApi([
             'result' => $restaurants,
+            'id_category_selected' => $arr,
             'total' => count($restaurants)
-        ], 200);
+        ]);
     }
 
     public function menu($restaurant)
     {
-        $restaurants = Restaurant::with('menus')->where('restaurant_slug', $restaurant)->get();
+        $restaurants = Restaurant::with('menus')->where('restaurant_slug', '=', $restaurant)->get();
 
-        if(!$restaurants) {
-            return response()->json([
-                'error' => 'menu not found'
-            ], 404);
-        }
+        if(!$restaurants) return $this->sendResponseNotFoundApi();
 
-        return response()->json([
+        return $this->sendResponseOkApi([
             'result' => $restaurants,
             'total' => count($restaurants)
-        ], 200);
+        ]);
     }
 
     public function gallery($restaurant)
     {
-        $restaurants = Restaurant::with('galleries')->where('restaurant_slug', $restaurant)->get();
+        $restaurants = Restaurant::with('galleries')->where('restaurant_slug', '=', $restaurant)->get();
 
-        if(!$restaurants) {
-            return response()->json([
-                'error' => 'gallery not found'
-            ], 404);
-        }
+        if(!$restaurants) return $this->sendResponseNotFoundApi();
 
-        return response()->json([
+        return $this->sendResponseOkApi([
             'result' => $restaurants,
             'total' => count($restaurants)
-        ], 200);
+        ]);
     }
 
     public function like($restaurant)
     {
-        $restaurants = Restaurant::with('likes')->where('restaurant_slug', $restaurant)->get();
+        $restaurants = Restaurant::with('likes')->where('restaurant_slug', '=', $restaurant)->get();
 
-        return response()->json([
+        if(!$restaurants) return $this->sendResponseNotFoundApi();
+
+        return $this->sendResponseOkApi([
             'total' => count($restaurants[0]['likes'])
-        ], 200);
+        ]);
+    }
+
+    public function rating()
+    {
+        $restaurants = Restaurant::with('ratings')->where('restaurant_user', Auth::user()->id_user)->get();
+
+        if(!$restaurants) return $this->sendResponseNotFoundApi();
+
+        if (count($restaurants) > 0) {
+            foreach ($restaurants as $rating) {
+                $result = 0;
+                foreach ($rating['ratings'] as $val) {
+                    $result += $val['rating_value'];
+                    $total  = ( count($rating['ratings']) / $result ) * 100;
+                    $value = doubleval(substr($total, 0,3));
+                    $rating['restaurant_rating'] = $value;
+                }
+            }
+        }
+
+        return $this->sendResponseOkApi([
+            'result' => $restaurants,
+            'total' => count($restaurants),
+        ]);
     }
 
     public function popular()
@@ -123,7 +148,7 @@ class RestaurantController extends Controller
                         ->paginate(10);
         }
 
-        return response()->json($restaurant, 200);
+        return $this->sendResponseOkApi($restaurant);
     }
 
     public function create(Request $request)
@@ -139,9 +164,7 @@ class RestaurantController extends Controller
             'restaurant_description' => 'required',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
-        }
+        if ($validator->fails()) return $this->sendResponseUnproccessApi(['error' => $validator->errors()]);
 
         $restaurant = Restaurant::where('restaurant_name', $request->input('restaurant_name'))->first();
 
@@ -157,6 +180,7 @@ class RestaurantController extends Controller
         $path = "images/resto/";
         $request->file('restaurant_image')->move($path, $img);
 
+        // INSERT
         $restaurant = $request->user()->restaurants()->create([
             'restaurant_name' => $request->input('restaurant_name'),
             'restaurant_slug' => $restaurantSlug,
@@ -168,11 +192,11 @@ class RestaurantController extends Controller
             'restaurant_description' => $request->input('restaurant_description'),
         ]);
 
-        $restaurant->categories()->attach($request->input('restaurant_category'));
+        $restaurant->categories()->attach(explode(',', $request->input('restaurant_category')));
 
-        return response()->json([
-            'success' => 'Data successfully created',
-        ], 200);
+        if(!$restaurant) return $this->sendResponseBadRequestApi();
+
+        return $this->sendResponseCreatedApi();
     }
 
     public function update(Request $request, $id)
@@ -184,19 +208,19 @@ class RestaurantController extends Controller
             'restaurant_latitude' => 'required',
             'restaurant_longitude' => 'required',
             'restaurant_description' => 'required',
+            'restaurant_image' => 'sometimes|mimes:jpeg,jpg,png,bmp|max:2000',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
-        }
+        if ($validator->fails()) return $this->sendResponseUnproccessApi(['error' => $validator->errors()]);
 
         $restaurant = Restaurant::findOrFail($id);
 
-        // check user
-        if(Auth::user()->id_user !== $restaurant->restaurant_user) {
-            return response()->json(['error' => "Access denied"], 403);
-        }
+        if(!$restaurant) return $this->sendResponseNotFoundApi();
 
+        // check user
+        if(Auth::user()->id_user !== $restaurant->restaurant_user) return $this->sendResponseForbiddenApi();
+        
+        // UPLOAD IMAGE
         if(empty($request->file('restaurant_image'))) {
             $img = $restaurant->restaurant_image;
         }else{
@@ -217,6 +241,7 @@ class RestaurantController extends Controller
             }
         }
 
+        // UPDATE
         $restaurant->update([
             'restaurant_name' => $request->input('restaurant_name'),
             'restaurant_slug' => str_slug($request->input('restaurant_name'), '-'),
@@ -228,20 +253,25 @@ class RestaurantController extends Controller
             'restaurant_description' => $request->input('restaurant_description'),
         ]);
 
-        return response()->json([
-            'success' => 'Data successfully updated',
-        ], 200);
+        $restaurant->categories()->sync(explode(',', $request->input('restaurant_category')));
+
+        return $this->sendResponseUpdatedApi();
     }
 
     public function delete($id)
     {
         $restaurant = Restaurant::findOrFail($id);
 
+        if(!$restaurant) return $this->sendResponseNotFoundApi();
+
         // check user
-        if(Auth::user()->id_user !== $restaurant->restaurant_user) {
-            return response()->json(['error' => "Access denied"], 403);
-        }
+        if(Auth::user()->id_user !== $restaurant->restaurant_user) return $this->sendResponseForbiddenApi();
         
+        $detach = $restaurant->categories()->detach();
+
+        $delete = $restaurant->delete();
+        if(!$delete) return $this->sendResponseBadRequestApi();
+
         // fetch image name
         $imgDB = explode('/', $restaurant->restaurant_image);
         $imgDB = end($imgDB);
@@ -252,11 +282,6 @@ class RestaurantController extends Controller
             unlink($path);
         }
 
-        $restaurant->categories()->detach();
-        $restaurant->delete();
-
-        return response()->json([
-            'message' => 'Data successfully delete'
-        ]);
+        return $this->sendResponseDeletedApi();
     }
 }

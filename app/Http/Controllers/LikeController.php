@@ -16,50 +16,49 @@ class LikeController extends Controller
             $q->where('restaurants.restaurant_slug', '=', "$restaurant");
         })->get();
 
-        return response()->json([
+        if(!$like) return $this->sendResponseNotFoundApi();
+
+        return $this->sendResponseOkApi([
             'result' => $like,
             'total' => count($like)
-        ], 200);
+        ]);
     }
 
     public function owner()
     {
-        $likes = Like::with('user', 'restaurant')->where('id_user', Auth::user()->id_user)->get();
+        $likes = Like::with('user', 'restaurant')->where('id_user', '=', Auth::user()->id_user)->get();
 
-        if(!$likes) {
-            return response()->json([
-                'error' => 'Like not found'
-            ], 404);
-        }
+        if(!$like) return $this->sendResponseNotFoundApi();
 
-        return response()->json([
-            'result' => $likes,
-            'total' => count($likes)
-        ], 200);
+        return $this->sendResponseOkApi([
+            'result' => $like,
+            'total' => count($like)
+        ]);
     }
 
     public function create(Request $request, $id)
     {
         $restaurant = Restaurant::findOrFail($id);
+        
+        if(!$restaurant) return $this->sendResponseNotFoundApi();
+
         $user = $request->user()->id_user;
 
         $like = Like::with('restaurant')->where('likes.id_restaurant', '=', "$id")
                                         ->where('likes.id_user', '=', "$user")
                                         ->get();
 
-        if ($like->toArray() !== []) {
-            return response()->json([
-                'error' => 'you have already liked'
-            ], 403);
-        }
+        if(!$like) return $this->sendResponseNotFoundApi();
 
-        $request->user()->likes()->create([
+        if ($like->toArray() !== []) return $this->sendResponseForbiddenApi('you have already liked');
+
+        $create = $request->user()->likes()->create([
             'id_restaurant' => $restaurant->id_restaurant
         ]);
 
-        return response()->json([
-            'success' => 'like'
-        ], 200);
+        if(!$create) return $this->sendResponseBadRequestApi();
+
+        return $this->sendResponseCreatedApi();
     }
 
     public function delete(Request $request, $id)
@@ -70,10 +69,8 @@ class LikeController extends Controller
                       ->where('id_user', '=', "$user")
                       ->delete();
 
-        if(!$like) return response()->json(['error' => 'Access denied'], 403);
+        if(!$like) return $this->sendResponseForbiddenApi();
 
-        return response()->json([
-            'success' => 'unlike'
-        ], 200);
+        return $this->sendResponseDeletedApi();
     }
 }

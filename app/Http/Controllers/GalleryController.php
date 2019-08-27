@@ -13,7 +13,7 @@ class GalleryController extends Controller
     {
         $galleries = Gallery::with('restaurant')->paginate(10);
 
-        return response()->json($galleries, 200);
+        return $this->sendResponseOkApi($galleries);
     }
 
     public function index($restaurant)
@@ -22,38 +22,49 @@ class GalleryController extends Controller
             $q->where('restaurants.restaurant_slug', '=', "$restaurant");
         })->get();
 
-        return response()->json([
+        if(!$galleries) return $this->sendResponseNotFoundApi();
+
+        return $this->sendResponseOkApi([
             'result' => $galleries,
             'total' => count($galleries)
-        ], 200);
+        ]);
     }
 
     public function show($id)
     {
         $galleries = Gallery::where('id_gallery', '=', $id)->get();
 
-        return response()->json([
+        if(!$galleries) return $this->sendResponseNotFoundApi();
+
+        return $this->sendResponseOkApi([
             'result' => $galleries,
             'total' => count($galleries)
-        ], 200);
+        ]);
     }
 
     public function owner()
     {
         $galleries = Gallery::with('restaurant')->whereHas('restaurant', function($q) {
             $q->where('restaurants.restaurant_user', '=', Auth::user()->id_user);
-        })->get();
+        })->paginate(8);
 
-        if(!$galleries) {
-            return response()->json([
-                'error' => 'Gallery not found'
-            ], 404);
-        }
+        if(!$galleries) return $this->sendResponseNotFoundApi();
 
-        return response()->json([
+        return $this->sendResponseOkApi([
             'result' => $galleries,
-            'total' => count($galleries)
-        ], 200);
+        ]);
+    }
+
+    public function search(Request $request)
+    {
+        $key = $request->input('key');
+        $galleries = Gallery::with('restaurant')->where('gallery_info', 'LIKE', "%$key%")->whereHas('restaurant', function($q) {
+            $q->where('restaurants.restaurant_user', '=', Auth::user()->id_user);
+        })->paginate(8);
+
+        return $this->sendResponseOkApi([
+            'result' => $galleries,
+        ]);
     }
 
     public function create(Request $request)
@@ -65,9 +76,7 @@ class GalleryController extends Controller
             'gallery_restaurant' => 'required',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);            
-        }
+        if ($validator->fails()) return $this->sendResponseUnproccessApi(['error' => $validator->errors()]);
 
         // UPLOAD IMAGE
         $img = $request->file('gallery_image')->getClientOriginalExtension();
@@ -75,16 +84,17 @@ class GalleryController extends Controller
         $path = "images/galleries/";
         $request->file('gallery_image')->move($path, $img);
 
-        Gallery::create([
+        // CREATE
+        $create = Gallery::create([
             'gallery_image' => $img,
             'gallery_info' => $request->input('gallery_info'),
             'gallery_copyright' => $request->input('gallery_copyright'),
             'gallery_restaurant' => $request->input('gallery_restaurant'),
         ]);
 
-        return response()->json([
-            'message' => 'Data successfully created',
-        ], 200);
+        if(!$create) return $this->sendResponseBadRequestApi();
+
+        return $this->sendResponseCreatedApi();
     }
 
     public function update(Request $request, $id)
@@ -93,22 +103,25 @@ class GalleryController extends Controller
             'gallery_info' => 'required',
             'gallery_copyright' => 'required',
             'gallery_restaurant' => 'required',
+            'gallery_image' => 'sometimes|mimes:jpeg,jpg,png,bmp|max:2000',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
-        }
+        if ($validator->fails()) return $this->sendResponseUnproccessApi(['error' => $validator->errors()]);
 
         // check user
         $id_gallery = Gallery::with('restaurant')->where('galleries.id_gallery', '=', $id)->get();
+        
+        if(!$id_gallery) return $this->sendResponseNotFoundApi();
+
         foreach ($id_gallery as $id_user) {
-            if (Auth::user()->id_user !== $id_user->restaurant->restaurant_user) {
-                return response()->json(['error' => "Access denied"], 403);
-            }
+            if (Auth::user()->id_user !== $id_user->restaurant->restaurant_user) return $this->sendResponseForbiddenApi();
         }
 
         $gallery = Gallery::findOrFail($id);
 
+        if(!$gallery) return $this->sendResponseNotFoundApi();
+
+        // UPLOAD IMAGE
         if(empty($request->file('gallery_image'))) {
             $img = $gallery->gallery_image;
         }else{
@@ -129,29 +142,37 @@ class GalleryController extends Controller
             }
         }
 
-        $gallery->update([
+        // UPDATE
+        $update = $gallery->update([
             'gallery_image' => $img,
             'gallery_info' => $request->input('gallery_info'),
             'gallery_copyright' => $request->input('gallery_copyright'),
             'gallery_restaurant' => $request->input('gallery_restaurant'),
         ]);
 
-        return response()->json([
-            'message' => 'Data successfully updated',
-        ], 200);
+        if(!$update) return $this->sendResponseBadRequestApi();
+
+        return $this->sendResponseUpdatedApi();
     }
 
     public function delete($id)
     {
         $gallery = Gallery::findOrFail($id);
 
+        if(!$gallery) return $this->sendResponseNotFoundApi();
+
         // check user
         $id_gallery = Gallery::with('restaurant')->where('galleries.id_gallery', '=', $id)->get();
+
+        if(!$id_gallery) return $this->sendResponseNotFoundApi();
+        
         foreach ($id_gallery as $id_user) {
-            if (Auth::user()->id_user !== $id_user->restaurant->restaurant_user) {
-                return response()->json(['error' => "Access denied"], 403);
-            }
+            if (Auth::user()->id_user !== $id_user->restaurant->restaurant_user) return $this->sendResponseForbiddenApi();
         }
+
+        $delete = $gallery->delete();
+
+        if(!$delete) return $this->sendResponseBadRequestApi();
 
         // fetch image name
         $imgDB = explode('/', $gallery->gallery_image);
@@ -163,10 +184,6 @@ class GalleryController extends Controller
             unlink($path);
         }
 
-        $gallery->delete();
-
-        return response()->json([
-            'message' => 'Data successfully delete'
-        ]);
+        return $this->sendResponseDeletedApi();
     }
 }
