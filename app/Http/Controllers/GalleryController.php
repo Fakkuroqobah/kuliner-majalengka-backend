@@ -46,13 +46,11 @@ class GalleryController extends Controller
     {
         $galleries = Gallery::with('restaurant')->whereHas('restaurant', function($q) {
             $q->where('restaurants.restaurant_user', '=', Auth::user()->id_user);
-        })->paginate(8);
+        })->orderBy('created_at', 'ASC')->paginate(1);
 
         if(!$galleries) return $this->sendResponseNotFoundApi();
 
-        return $this->sendResponseOkApi([
-            'result' => $galleries,
-        ]);
+        return $this->sendResponseOkApi($galleries);
     }
 
     public function search(Request $request)
@@ -62,9 +60,7 @@ class GalleryController extends Controller
             $q->where('restaurants.restaurant_user', '=', Auth::user()->id_user);
         })->paginate(8);
 
-        return $this->sendResponseOkApi([
-            'result' => $galleries,
-        ]);
+        return $this->sendResponseOkApi($galleries);
     }
 
     public function create(Request $request)

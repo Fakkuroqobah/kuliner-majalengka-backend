@@ -4,6 +4,10 @@ $router->get('/', function () use ($router) {
     return $router->app->version();
 });
 
+/* ADMIN -------------------------------------------------------------- */
+$router->post('/admin/login', 'Admin\AdminController@login');
+/* -------------------------------------------------------------------- */
+
 $router->post('/register', 'UserController@register');
 $router->post('/login', 'UserController@login');
 
@@ -31,6 +35,17 @@ $router->get('/rating/{restaurant}', 'RatingController@show');
 $router->get('/like/{restaurant}', 'LikeController@show');
 
 $router->group(['middleware' => 'auth:api'], function() use($router) {
+    
+    /* ADMIN -------------------------------------------------------------- */
+    $router->get('/admin/user/all', 'Admin\AdminUserController@all');
+    $router->get('/admin/user/total', 'Admin\AdminUserController@total');
+    $router->get('/admin/user/details/{id}', 'Admin\AdminUserController@details');
+
+    $router->get('/admin/restaurant/all', 'Admin\AdminRestaurantController@all');
+    $router->get('/admin/restaurant/total', 'Admin\AdminRestaurantController@total');
+    $router->post('/admin/restaurant/active/{id}', 'Admin\AdminRestaurantController@active');
+    /* -------------------------------------------------------------------- */
+
     // User
     $router->post('/logout', 'UserController@logout');
     $router->get('/user/details', 'UserController@details');
@@ -38,6 +53,7 @@ $router->group(['middleware' => 'auth:api'], function() use($router) {
 
     // Restaurant
     $router->get('/restaurant/owner', 'RestaurantController@owner');
+    $router->get('/restaurant/owner/all', 'RestaurantController@ownerAll');
     $router->get('/restaurant/categories/{restaurant}', 'RestaurantController@category');
     $router->get('/restaurant/galleries/{restaurant}', 'RestaurantController@gallery');
     $router->get('/restaurant/menus/{restaurant}', 'RestaurantController@menu');

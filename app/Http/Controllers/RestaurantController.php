@@ -46,6 +46,15 @@ class RestaurantController extends Controller
         return $this->sendResponseOkApi($restaurants);
     }
 
+    public function ownerAll()
+    {
+        $restaurants = Restaurant::with('user', 'ratings')->where('restaurant_user', '=', Auth::user()->id_user)->get();
+
+        if(!$restaurants) return $this->sendResponseNotFoundApi();
+
+        return $this->sendResponseOkApi($restaurants);
+    }
+
     public function search(Request $request)
     {
         $key = $request->input('key');

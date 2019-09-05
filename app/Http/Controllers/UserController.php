@@ -16,7 +16,7 @@ class UserController extends Controller
         $email = $request->input('user_email');
         $password = $request->input('user_password');
 
-        $check = User::where('user_email', $email)->first();
+        $check = User::where('user_email', '=', $email)->first();
 
         if($check !== null) {
             if(Hash::check($password, $check->user_password)){
@@ -92,8 +92,32 @@ class UserController extends Controller
 
         if(!$user) return $this->sendResponseNotFoundApi();
 
+        // UPLOAD IMAGE
+        if(empty($request->file('user_image'))) {
+            $img = $user->user_image;
+        }else{
+            // Save new image
+            $img = $request->file('user_image')->getClientOriginalExtension();
+            $img = str_random(30) . '.' . $img;
+            $path = 'images/avatar/';
+            $request->file('user_image')->move($path, $img);
+
+            // and delete old image
+            $imgDB = explode('/', $user->user_image);
+            $imgDB = end($imgDB);
+
+            $path = base_path("public/images/avatar/$imgDB");
+
+            if ($user->user_image !== 'avatar.png') {
+                if(file_exists($path)) {
+                    unlink($path);
+                }
+            }
+        }
+
         $update = $user->update([
-            'user_name' => $request->input('user_name')
+            'user_name' => $request->input('user_name'),
+            'user_image' => $img
         ]);
 
         if(!$update) return $this->sendResponseBadRequestApi();

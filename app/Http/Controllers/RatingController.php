@@ -24,9 +24,9 @@ class RatingController extends Controller
 
     public function show($restaurant)
     {
-        $ratings = Rating::with('user', 'restaurant')->whereHas('restaurant', function($q) use($restaurant) {
+        $ratings = Rating::with('user')->whereHas('restaurant', function($q) use($restaurant) {
             $q->where('restaurants.restaurant_slug', '=', "$restaurant");
-        })->get();
+        })->orderBy('created_at', 'DESC')->get();
 
         if(!$ratings) return $this->sendResponseNotFoundApi();
 
