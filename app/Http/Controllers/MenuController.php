@@ -12,7 +12,7 @@ class MenuController extends Controller
 {
     public function all ()
     {
-        $menus = Menu::with('restaurant')->paginate(10);
+        $menus = Menu::with('restaurant')->paginate(2);
 
         foreach ($menus as $menu) {
             if($menu->menu_favorite == 1){

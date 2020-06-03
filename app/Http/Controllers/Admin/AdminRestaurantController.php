@@ -14,7 +14,7 @@ class AdminRestaurantController extends Controller
 {
     public function all()
     {
-        $restaurants = Restaurant::with('user')->orderBy('created_at', 'DESC')->paginate(30);
+        $restaurants = Restaurant::with('user')->orderBy('created_at', 'DESC')->paginate(1);
 
         return $this->sendResponseOkApi($restaurants);
     }

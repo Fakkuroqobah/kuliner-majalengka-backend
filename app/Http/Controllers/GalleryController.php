@@ -34,7 +34,7 @@ class GalleryController extends Controller
     {
         $galleries = Gallery::where('id_gallery', '=', $id)->get();
 
-        if(!$galleries) return $this->sendResponseNotFoundApi();
+        // if(count($galleries) === 0) return $this->sendResponseNotFoundApi();
 
         return $this->sendResponseOkApi([
             'result' => $galleries,
@@ -46,7 +46,7 @@ class GalleryController extends Controller
     {
         $galleries = Gallery::with('restaurant')->whereHas('restaurant', function($q) {
             $q->where('restaurants.restaurant_user', '=', Auth::user()->id_user);
-        })->orderBy('created_at', 'ASC')->paginate(1);
+        })->orderBy('created_at', 'ASC')->paginate(8);
 
         if(!$galleries) return $this->sendResponseNotFoundApi();
 

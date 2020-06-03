@@ -23,13 +23,13 @@ class UserController extends Controller
                 $success['token'] =  $check->createToken($request->input('user_email'))->accessToken;
                 return $this->sendResponseOkApi([
                     'token' => $success['token'],
-                    'user' => Auth::user()
+                    'user' => $check
                 ], 'You have successfully logged in');
             }else{
-                return $this->sendResponseUnauthorizedApi('Password salah');
+                return $this->sendResponseUnauthorizedApi('Email atau Password Salah');
             }
         }else{
-            return $this->sendResponseUnauthorizedApi('Email tidak terdaftar');
+            return $this->sendResponseUnauthorizedApi('Email atau Password Salah');
         }
 
         return $this->sendResponseBadRequestApi();

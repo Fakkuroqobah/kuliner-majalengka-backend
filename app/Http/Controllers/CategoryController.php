@@ -11,7 +11,7 @@ class CategoryController extends Controller
 {
     public function all ()
     {
-        $categories = Category::with('user')->paginate(10);
+        $categories = Category::all();
 
         return $this->sendResponseOkApi($categories);
     }
