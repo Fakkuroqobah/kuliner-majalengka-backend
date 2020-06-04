@@ -10,9 +10,9 @@ use Auth;
 
 class MenuController extends Controller
 {
-    public function all ()
+    public function all()
     {
-        $menus = Menu::with('restaurant')->paginate(2);
+        $menus = Menu::with('restaurant')->paginate(8);
 
         foreach ($menus as $menu) {
             if($menu->menu_favorite == 1){
@@ -21,6 +21,13 @@ class MenuController extends Controller
                 $menu->menu_favorite = false;
             }
         }
+        
+        return $this->sendResponseOkApi($menus);
+    }
+
+    public function random()
+    {
+        $menus = Menu::with('restaurant')->inRandomOrder()->limit(10)->get();
         
         return $this->sendResponseOkApi($menus);
     }

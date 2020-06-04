@@ -11,9 +11,16 @@ use Auth;
 
 class RestaurantController extends Controller
 {
-    public function all ()
+    public function all()
     {
         $restaurants = Restaurant::with('user')->paginate(10);
+        
+        return $this->sendResponseOkApi($restaurants);
+    }
+
+    public function random()
+    {
+        $restaurants = Restaurant::with('user')->inRandomOrder()->limit(10)->get();
         
         return $this->sendResponseOkApi($restaurants);
     }

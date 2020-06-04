@@ -13,16 +13,19 @@ $router->post('/login', 'UserController@login');
 
 // restaurant
 $router->get('/restaurant', 'RestaurantController@all');
+$router->get('/restaurant/random', 'RestaurantController@random');
 $router->get('/restaurant/popular', 'RestaurantController@popular');
 $router->get('/restaurant/detail/{restaurant}', 'RestaurantController@show');
 
 // menu
 $router->get('/menu', 'MenuController@all');
+$router->get('/menu/random', 'MenuController@random');
 $router->get('/{restaurant}/menu/', 'MenuController@index');
 $router->get('/{restaurant}/menu/{menu}', 'MenuController@show');
 
 // category
 $router->get('/category', 'CategoryController@all');
+$router->get('/category/random', 'CategoryController@random');
 
 // Gallery
 $router->get('/gallery', 'GalleryController@all');

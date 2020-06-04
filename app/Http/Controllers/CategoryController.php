@@ -9,10 +9,17 @@ use Auth;
 
 class CategoryController extends Controller
 {
-    public function all ()
+    public function all()
     {
         $categories = Category::all();
 
+        return $this->sendResponseOkApi($categories);
+    }
+
+    public function random()
+    {
+        $categories = Category::inRandomOrder()->limit(5)->get();
+        
         return $this->sendResponseOkApi($categories);
     }
 
