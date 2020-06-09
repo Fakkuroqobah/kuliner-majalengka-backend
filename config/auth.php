@@ -8,12 +8,14 @@ return [
 
     'guards' => [
         'api' => [
-            'driver' => 'passport',
+            // 'driver' => 'passport',
+            'driver' => 'jwt',
             'provider' => 'users',
         ],
 
         'admin' => [
-            'driver' => 'passport',
+            // 'driver' => 'passport',
+            'driver' => 'jwt',
             'provider' => 'admin',
         ],
     ],

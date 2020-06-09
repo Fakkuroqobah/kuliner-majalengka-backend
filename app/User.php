@@ -9,28 +9,46 @@ use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 
 use Laravel\Passport\HasApiTokens;
+use Illuminate\Support\Facades\Hash;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Model implements AuthenticatableContract, AuthorizableContract
+class User extends Model implements AuthenticatableContract, AuthorizableContract, JWTSubject
 {
     use Authenticatable, Authorizable, HasApiTokens;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $primaryKey = 'id_user';
 
     protected $guarded = ['id_user'];
 
-    /**
-     * The attributes excluded from the model's JSON form.
-     *
-     * @var array
-     */
     protected $hidden = [
         'user_password', 'user_level', 'updated_at', 'remember_token'
     ];
+
+    // JWT
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [];
+    }
+
+    public function getAuthPassword()
+    {
+        return $this->user_password;
+    }
+
+    // OAUTH
+    // public function findForPassport($username) {
+    //     return $this->where('user_email', $username)->first();
+    // }
+
+    // public function validateForPassportPasswordGrant($password)
+    // {
+    //     return Hash::check($password, $this->user_password);
+    // }
 
     public function restaurants()
     {
@@ -50,10 +68,5 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     public function likes()
     {
         return $this->hasMany(Like::class, 'id_user');
-    }
-
-    public function OauthAccessToken()
-    {
-        return $this->hasMany(OauthAccessToken::class, 'user_id');
     }
 }

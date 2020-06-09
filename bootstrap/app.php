@@ -69,12 +69,10 @@ $app->configure('cors');
 
 $app->middleware([
     \Barryvdh\Cors\HandleCors::class,
-    // App\Http\Middleware\CorsMiddleware::class,
 ]);
 
 $app->routeMiddleware([
     'auth' => App\Http\Middleware\Authenticate::class,
-    // 'cors' => App\Http\Middleware\CorsMiddleware::class
 ]);
 
 /*
@@ -94,9 +92,12 @@ $app->register(App\Providers\EventServiceProvider::class);
 
 $app->register(Barryvdh\Cors\ServiceProvider::class);
 $app->register(Flipbox\LumenGenerator\LumenGeneratorServiceProvider::class);
-$app->register(Laravel\Passport\PassportServiceProvider::class);
-$app->register(Dusterio\LumenPassport\PassportServiceProvider::class);
-\Dusterio\LumenPassport\LumenPassport::routes($app);
+$app->register(Tymon\JWTAuth\Providers\LumenServiceProvider::class);
+
+// OAUTH
+// $app->register(Laravel\Passport\PassportServiceProvider::class);
+// $app->register(Dusterio\LumenPassport\PassportServiceProvider::class);
+// \Dusterio\LumenPassport\LumenPassport::routes($app);
 
 /*
 |--------------------------------------------------------------------------

@@ -12,27 +12,73 @@ use Validator;
 
 class UserController extends Controller
 {
-    public function login(Request $request){
+    private function respondWithToken($token)
+    {
+        return response()->json([
+            'access_token' => $token,
+            'token_type' => 'bearer',
+            'expires_in' => Auth::factory()->getTTL() * 60,
+            'user' => Auth::user()
+        ]);
+    }
+
+    public function login(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_email' => 'required|email',
+            'user_password' => 'required',
+        ]);
+
+        if ($validator->fails()) return $this->sendResponseUnproccessApi(['error' => $validator->errors()]);
+
         $email = $request->input('user_email');
         $password = $request->input('user_password');
 
-        $check = User::where('user_email', '=', $email)->first();
-
-        if($check !== null) {
-            if(Hash::check($password, $check->user_password)){
-                $success['token'] =  $check->createToken($request->input('user_email'))->accessToken;
-                return $this->sendResponseOkApi([
-                    'token' => $success['token'],
-                    'user' => $check
-                ], 'You have successfully logged in');
-            }else{
-                return $this->sendResponseUnauthorizedApi('Email atau Password Salah');
+        try {
+            
+            if (!$token = Auth::attempt(['user_email' => $email, 'password' => $password])) {
+                return response()->json(['error' => 'Bad Credentials'], 401);
             }
-        }else{
-            return $this->sendResponseUnauthorizedApi('Email atau Password Salah');
-        }
 
-        return $this->sendResponseBadRequestApi();
+        } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
+            
+            return response()->json(['Token Expired'], 401);
+
+        } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+            
+            return response()->json(['Invalid Token'], 401);
+
+        } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
+            
+            return response()->json(['Absent Token' => $e->getMessage()], 500);
+
+        }
+        
+        return $this->respondWithToken($token);
+
+        // $check = User::where('user_email', '=', $email)->first();
+
+        // if($check !== null) {
+        //     if(Hash::check($password, $check->user_password)){
+        //         // $token =  $check->createToken($request->input('user_email'));
+        //         // $strToken = $token->accessToken;
+
+        //         // return $this->sendResponseOkApi([
+        //         //     'token' => $strToken,
+        //         //     'user' => $check
+        //         // ], 'You have successfully logged in');
+
+        //         $token = $this->jwt($check);
+                
+        //         return $this->respondWithToken($token);
+        //     }else{
+        //         return $this->sendResponseUnauthorizedApi('Email atau Password Salah');
+        //     }
+        // }else{
+        //     return $this->sendResponseUnauthorizedApi('Email atau Password Salah');
+        // }
+
+        // return $this->sendResponseBadRequestApi();
     }
 
     public function register(Request $request)
@@ -56,26 +102,32 @@ class UserController extends Controller
 
         if(!$user) return $this->sendResponseBadRequestApi();
 
-        $success['token'] =  $user->createToken($request->input('user_name'))->accessToken;
-        $success['name'] =  $user->user_name;
+        // $success['token'] =  $user->createToken($request->input('user_name'))->accessToken;
+        // $success['name'] =  $user->user_name;
 
-        return $this->sendResponseCreatedApi([
-            'token' => $success['token']
-        ], 'You have been registered');
+        return $this->sendResponseCreatedApi('You have been registered');
     }
 
-    public function logout()
+    public function logout(Request $request)
     {
         if(Auth::check()) {
-            $delete = Auth::user()->OauthAccessToken()->delete();
+            // $delete = $request->user()->token()->revoke();
+            // if(!$delete) return $this->sendResponseBadRequestApi();
 
-            if(!$delete) return $this->sendResponseBadRequestApi();
+            $user = Auth::logout();
 
             return $this->sendResponseOkApi([], 'logout successfully');
         }
+
+        return $this->sendResponseUnauthorizedApi();
     }
 
-    public function details()
+    public function refresh()
+    {
+        return $this->respondWithToken(Auth::refresh());
+    }
+
+    public function details(Request $request)
     {
         return $this->sendResponseOkApi(['user' => Auth::user()]);
     }
