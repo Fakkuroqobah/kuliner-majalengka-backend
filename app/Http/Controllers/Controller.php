@@ -3,15 +3,39 @@
 namespace App\Http\Controllers;
 
 use Laravel\Lumen\Routing\Controller as BaseController;
+use Tymon\JWTAuth\JWTAuth;
+use Tymon\JWTAuth\Manager;
 
 class Controller extends BaseController
 {
+    /**
+     * @var JWTAuth
+     */
+    protected $jwt;
+
+    /**
+     * @var Manager
+     */
+    protected $manager;
+
+    /**
+     * Controller constructor.
+     *
+     * @param JWTAuth $jwt
+     * @param Manager $manager
+     */
+    public function __construct(JWTAuth $jwt, Manager $manager)
+    {
+        $this->jwt = $jwt;
+        $this->manager = $manager;
+    }
+
     protected function success($data, $code, $message = '')
     {
         return response()->json(['result' => $data, 'message' => $message, 'code' => $code], $code);
     }
 
-    protected function error($data, $code)
+    protected function error($message, $code)
     {
         return response()->json(['message' => $message], $code);
     }
@@ -163,6 +187,6 @@ class Controller extends BaseController
      */
     public function sendResponseNoContentApi()
     {
-        return responseApi(null,204);
+        return $this->sendResponseApi(null,204);
     }
 }

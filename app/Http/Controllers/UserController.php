@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Http\Controllers\Controller;
-use App\OauthAccessToken;
 use App\User;
 use Validator;
 
@@ -37,7 +37,7 @@ class UserController extends Controller
         try {
             
             if (!$token = Auth::attempt(['user_email' => $email, 'password' => $password])) {
-                return response()->json(['error' => 'Bad Credentials'], 401);
+                return $this->sendResponseUnauthorizedApi('Email atau Password Salah');
             }
 
         } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
@@ -124,10 +124,26 @@ class UserController extends Controller
 
     public function refresh()
     {
-        return $this->respondWithToken(Auth::refresh());
+        try {
+            return response()->json([
+                'refresh_token' => $this->manager->refresh($this->jwt->getToken())->get(),
+                'token_type' => 'bearer',
+                'expires_in' => Auth::factory()->getTTL() * 60,
+                'user' => Auth::user()
+            ]);
+        } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
+            return response()->json($e->getMessage(), 500);
+        }
+
+        // return response()->json([
+        //     'refresh_token' => JWTAuth::refresh(JWTAuth::getToken()),
+        //     'token_type' => 'bearer',
+        //     'expires_in' => Auth::factory()->getTTL() * 60,
+        //     'user' => Auth::user()
+        // ]);
     }
 
-    public function details(Request $request)
+    public function details()
     {
         return $this->sendResponseOkApi(['user' => Auth::user()]);
     }

@@ -37,7 +37,11 @@ $router->get('/rating/{restaurant}', 'RatingController@show');
 // like
 $router->get('/like/{restaurant}', 'LikeController@show');
 
-$router->group(['middleware' => 'auth:api'], function() use($router) {
+$router->group(['middleware' => 'jwt.refresh'], function() use($router) {
+    $router->post('/refresh', 'UserController@refresh');
+});
+
+$router->group(['middleware' => 'jwt.auth'], function() use($router) {
     
     /* ADMIN -------------------------------------------------------------- */
     $router->get('/admin/user/all', 'Admin\AdminUserController@all');
@@ -51,7 +55,6 @@ $router->group(['middleware' => 'auth:api'], function() use($router) {
 
     // User
     $router->post('/logout', 'UserController@logout');
-    $router->post('/refresh', 'UserController@refresh');
     $router->get('/user/details', 'UserController@details');
     $router->post('/user/update', 'UserController@update');
 
